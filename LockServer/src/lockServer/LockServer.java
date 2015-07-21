@@ -73,7 +73,7 @@ public class LockServer extends HttpServlet {
 		}
 
 		// print all output from error file
-		out.println("Error file contents:");
+		out.println("Message file contents:");
 		for (String line : FileDao.getOutput()) {
 			out.println(line);
 		}
