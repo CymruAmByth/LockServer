@@ -14,18 +14,20 @@ public class LockDevice implements Runnable{
     private String deviceSerialNo;
     private String command;
     private ByteBuffer buf;
+    private boolean run;
 	
     public LockDevice(SocketChannel socket, LockManager manager) {
         this.socket = socket;
         this.manager = manager;
         buf = ByteBuffer.allocate(80);
         buf.clear();
+        run = true;
     }
     
 	@Override
 	public void run() {
         try {
-            while (true) {
+            while (run) {
                 //sending data is a command is there
                 if (command != null) {
                     buf.clear();
@@ -69,4 +71,8 @@ public class LockDevice implements Runnable{
 	private void bindWithManager() {
         manager.addDevice(deviceSerialNo, this);
     }
+	
+	public void stopDevice() {
+		run = false;
+	}
 }

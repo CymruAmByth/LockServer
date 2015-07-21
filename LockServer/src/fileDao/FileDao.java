@@ -23,7 +23,7 @@ public abstract class FileDao {
 	      if (!f.exists()) {
 	        f.createNewFile();
 	        writer = new PrintWriter(new FileWriter(f));
-	        writer.println("No errors");
+	        writer.println("Empty file read @ " + new Date().toString());
 	      }
 	      if (writer != null) {
 	        writer.close();
@@ -71,6 +71,11 @@ public abstract class FileDao {
 	    		printWriter.close();
 	    	}
 	    }
+	  }
+	  
+	  public static void emptyFile() {
+		  File f = new File("FileCounter.initial");
+		  f.delete();
 	  }
 
 }

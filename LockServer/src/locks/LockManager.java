@@ -11,6 +11,7 @@ import fileDao.FileDao;
 public class LockManager implements Runnable{
 	
 	private final TreeMap<String, LockDevice> devices = new TreeMap<String, LockDevice>();
+	private boolean run = true;
 
 	@Override
 	public void run() {
@@ -19,7 +20,7 @@ public class LockManager implements Runnable{
         	serverSocket = ServerSocketChannel.open();
             serverSocket.socket().bind(new InetSocketAddress(44444));
             serverSocket.configureBlocking(false);
-            while (true) {
+            while (run) {
                 SocketChannel s = serverSocket.accept();
                 if (s != null) {
                 	FileDao.writeOutput("Connecting device");
@@ -28,6 +29,7 @@ public class LockManager implements Runnable{
                     t.start();
                 }
             }
+            serverSocket.close();
         } catch (IOException ex) {
         	FileDao.writeOutput(ex.getMessage());
 		}
@@ -39,5 +41,15 @@ public class LockManager implements Runnable{
     
     public int noOfDevices(){
     	return devices.size();
+    }
+    
+    public int shutDownServer(){
+    	for(LockDevice device : devices.values()){
+    		device.stopDevice();
+    	}
+    	run = false;
+    	int result = devices.size();
+    	devices.clear();
+    	return result;
     }
 }
