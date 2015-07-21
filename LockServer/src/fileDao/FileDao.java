@@ -7,10 +7,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
-public class FileDao {
-	public List<String> getCount() {
+public abstract class FileDao {
+	public static List<String> getOutput() {
 	    // Load the file with the counter
 		List<String> result = new ArrayList<String>();
 	    FileReader fileReader = null;
@@ -21,7 +23,7 @@ public class FileDao {
 	      if (!f.exists()) {
 	        f.createNewFile();
 	        writer = new PrintWriter(new FileWriter(f));
-	        writer.println("No messages");
+	        writer.println("No errors");
 	      }
 	      if (writer != null) {
 	        writer.close();
@@ -50,19 +52,24 @@ public class FileDao {
 	        e.printStackTrace();
 	      }
 	    }
+	    Collections.reverse(result);
 	    return result;
 	  }
 
-	  public void save(String message) throws Exception {
-	    FileWriter fileWriter = null;
-	    PrintWriter printWriter = null;
-	    fileWriter = new FileWriter("FileCounter.initial", true);
-	    printWriter = new PrintWriter(fileWriter);
-	    printWriter.println(message);
-
-	    // make sure to close the file
-	    if (printWriter != null) {
-	      printWriter.close();
+	  public static void writeOutput(String message) {
+		FileWriter fileWriter = null;
+		PrintWriter printWriter = null;
+	    try {
+			fileWriter = new FileWriter("FileCounter.initial", true);
+		    printWriter = new PrintWriter(fileWriter);
+		    printWriter.println(new Date().toString() + ":" + message);
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+		}
+	    finally{
+	    	if (printWriter != null) {
+	    		printWriter.close();
+	    	}
 	    }
 	  }
 

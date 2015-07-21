@@ -14,14 +14,12 @@ public class LockDevice implements Runnable{
     private String deviceSerialNo;
     private String command;
     private ByteBuffer buf;
-    private FileDao file;
 	
     public LockDevice(SocketChannel socket, LockManager manager) {
         this.socket = socket;
         this.manager = manager;
         buf = ByteBuffer.allocate(80);
         buf.clear();
-        file = new FileDao();
     }
     
 	@Override
@@ -44,8 +42,7 @@ public class LockDevice implements Runnable{
                     buf.flip();
                     String data = new String(buf.array(), buf.position(),buf.limit());
                     data = data.trim();
-                    //System.out.println("Received: " + data + " @ " + new Date().toString());
-                    file.save("Received: " + data + " @ " + new Date().toString());
+                    FileDao.writeOutput("Received: " + data + " @ " + new Date().toString());
                     if(data.equals("Hello"))
                     	command = "Hello there";
                     else if(data.equals("Ping"))
@@ -58,23 +55,14 @@ public class LockDevice implements Runnable{
                         	this.bindWithManager();
                         }
                         else {
-                        	System.out.println(content);
-                            System.out.println(header);
+                        	FileDao.writeOutput(header);
+                        	FileDao.writeOutput(content);
                         }
                     }
                 }
             }
         } catch (IOException ex) {
-            //System.out.println(ex.getMessage());
-        	try {
-				file.save(ex.getMessage());
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-        } catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+            FileDao.writeOutput(ex.getMessage());
 		}
 	}
 	

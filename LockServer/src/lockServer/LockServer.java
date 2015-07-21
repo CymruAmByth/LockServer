@@ -42,14 +42,19 @@ public class LockServer extends HttpServlet {
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		//int count = lock.noOfDevices();
+		//set up output
 		response.setContentType("text/plain");
 	    PrintWriter out = response.getWriter();
-	    FileDao dao = new FileDao();
-	    for(String line : dao.getCount()){
+
+	    //retrieve and print number of connected devices + empty line
+	    int count = lock.noOfDevices();
+	    out.println("Number of connected devices: " + count);
+	    	    
+	    //print all output from error file
+	    out.println("Error file contents:");
+	    for(String line : FileDao.getOutput()){
 	    	out.println(line);
 	    }
-	    //out.println("Number of connected devices: " + count);
 	}
 	
 	
