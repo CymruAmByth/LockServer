@@ -3,7 +3,6 @@ package locks;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.util.Date;
 
 import fileDao.FileDao;
 
@@ -44,7 +43,7 @@ public class LockDevice implements Runnable{
                     buf.flip();
                     String data = new String(buf.array(), buf.position(),buf.limit());
                     data = data.trim();
-                    FileDao.writeOutput("Received: " + data + " @ " + new Date().toString());
+                    FileDao.writeOutput("Received: " + data );
                     if(data.equals("Hello"))
                     	command = "Hello there";
                     else if(data.equals("Ping"))
