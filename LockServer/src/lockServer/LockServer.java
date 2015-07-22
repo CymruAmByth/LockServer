@@ -47,10 +47,12 @@ public class LockServer extends HttpServlet {
 		PrintWriter out = response.getWriter();
 
 		if (action == null) {
+			response.addHeader("Refresh", "5");
 			this.showStatus(out);
 		} else {
 			// execute required action
 			if (action.equals("showStatus")) {
+				response.addHeader("Refresh", "5");
 				this.showStatus(out);
 			} else if (action.equals("start")) {
 				this.start(out);

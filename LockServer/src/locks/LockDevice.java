@@ -1,8 +1,9 @@
 package locks;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import fileDao.FileDao;
 
@@ -14,6 +15,8 @@ public class LockDevice implements Runnable{
     private String command;
     private ByteBuffer buf;
     private boolean run;
+    private ScheduledThreadPoolExecutor checker;
+    private final PeriodicPingCheck ppc;
 	
     public LockDevice(SocketChannel socket, LockManager manager) {
         this.socket = socket;
@@ -21,6 +24,9 @@ public class LockDevice implements Runnable{
         buf = ByteBuffer.allocate(80);
         buf.clear();
         run = true;
+        checker = new ScheduledThreadPoolExecutor(1);
+        ppc = new PeriodicPingCheck();
+        checker.schedule(ppc, 2, TimeUnit.MINUTES);
     }
     
 	@Override
@@ -44,11 +50,15 @@ public class LockDevice implements Runnable{
                     String data = new String(buf.array(), buf.position(),buf.limit());
                     data = data.trim();
                     FileDao.writeOutput("Received: " + data );
-                    if(data.equals("Hello"))
+                    if(data.equals("Hello")){
                     	command = "Hello there";
-                    else if(data.equals("Ping"))
+                    } else if(data.equals("Ping")){
                     	command = "Pong";
-                    else {
+                    	checker.shutdownNow();
+                    	checker = new ScheduledThreadPoolExecutor(1);
+                    	//checker.remove(ppc);
+                    	checker.schedule(ppc, 2, TimeUnit.MINUTES);
+                    } else {
                     	String header = data.substring(0, 4);
                         String content = data.substring(4);
                         if(header.equals("DEV:")){
@@ -62,16 +72,28 @@ public class LockDevice implements Runnable{
                     }
                 }
             }
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             FileDao.writeOutput(ex.getMessage());
 		}
+        unbindWithManager();
 	}
 	
 	private void bindWithManager() {
         manager.addDevice(deviceSerialNo, this);
     }
 	
+	private void unbindWithManager() {
+		manager.removeDevice(deviceSerialNo);
+	}
+	
 	public void stopDevice() {
 		run = false;
+	}
+	
+	private class PeriodicPingCheck implements Runnable {
+		@Override
+		public void run() {
+			stopDevice();			
+		}		
 	}
 }

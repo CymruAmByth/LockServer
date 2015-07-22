@@ -44,12 +44,15 @@ public class LockManager implements Runnable{
     }
     
     public int shutDownServer(){
+    	int result = devices.size();
     	for(LockDevice device : devices.values()){
     		device.stopDevice();
     	}
     	run = false;
-    	int result = devices.size();
-    	devices.clear();
     	return result;
     }
+
+	public void removeDevice(String deviceSerialNo) {
+		devices.remove(deviceSerialNo);		
+	}
 }
