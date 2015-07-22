@@ -56,10 +56,11 @@ public class LockServer extends HttpServlet {
 				this.showStatus(out);
 			} else if (action.equals("start")) {
 				this.start(out);
+				response.sendRedirect("http://soerendonk.iwa.nu:7080/LockServer/LockServer?action=showStatus");
 			} else if (action.equals("stop")) {
 				this.stop(out);
 			} else {
-				this.start(out);
+				response.sendRedirect("?action=showStatus");
 			}
 		}
 	}
@@ -69,6 +70,7 @@ public class LockServer extends HttpServlet {
 		// null, else show warning
 		if (lock != null) {
 			int count = lock.noOfDevices();
+			out.println("LockServer is running");
 			out.println("Number of connected devices: " + count);
 		} else {
 			out.println("Lock server has not been started, add ?action=start to your url to start the server");
@@ -93,9 +95,6 @@ public class LockServer extends HttpServlet {
 		lock = new LockManager();
 		Thread t = new Thread(lock);
 		t.start();
-
-		// show status
-		this.showStatus(out);
 	}
 
 	private void stop(PrintWriter out) {

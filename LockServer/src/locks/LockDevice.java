@@ -2,8 +2,9 @@ package locks;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.Timer;
+import java.util.TimerTask;
+
 
 import fileDao.FileDao;
 
@@ -15,18 +16,36 @@ public class LockDevice implements Runnable{
     private String command;
     private ByteBuffer buf;
     private boolean run;
-    private ScheduledThreadPoolExecutor checker;
-    private final PeriodicPingCheck ppc;
+    private long lastPing;
+    private Timer timer;
+    //private ScheduledThreadPoolExecutor checker;
+    //private final PeriodicPingCheck ppc;
 	
     public LockDevice(SocketChannel socket, LockManager manager) {
-        this.socket = socket;
+        //Setting up socket comm
+    	this.socket = socket;
         this.manager = manager;
         buf = ByteBuffer.allocate(80);
         buf.clear();
         run = true;
-        checker = new ScheduledThreadPoolExecutor(1);
-        ppc = new PeriodicPingCheck();
-        checker.schedule(ppc, 2, TimeUnit.MINUTES);
+        
+        //Setting up timer for pingcheck
+        timer = new Timer();
+        TimerTask pingChecker = new TimerTask() {
+			
+			@Override
+			public void run() {
+				long current = System.currentTimeMillis();
+				if(current - lastPing > 70*1000){
+					stopDevice();
+				}
+				
+			}
+		};
+        timer.schedule(pingChecker, 90*1000, 60*1000);
+        //checker = new ScheduledThreadPoolExecutor(1);
+        //ppc = new PeriodicPingCheck();
+        //checker.schedule(ppc, 2, TimeUnit.MINUTES);
     }
     
 	@Override
@@ -54,10 +73,10 @@ public class LockDevice implements Runnable{
                     	command = "Hello there";
                     } else if(data.equals("Ping")){
                     	command = "Pong";
-                    	checker.shutdownNow();
-                    	checker = new ScheduledThreadPoolExecutor(1);
-                    	//checker.remove(ppc);
-                    	checker.schedule(ppc, 2, TimeUnit.MINUTES);
+                    	lastPing = System.currentTimeMillis();
+                    	//checker.shutdownNow();
+                    	//checker = new ScheduledThreadPoolExecutor(1);
+                    	//checker.schedule(ppc, 2, TimeUnit.MINUTES);
                     } else {
                     	String header = data.substring(0, 4);
                         String content = data.substring(4);
@@ -76,6 +95,7 @@ public class LockDevice implements Runnable{
             FileDao.writeOutput(ex.getMessage());
 		}
         unbindWithManager();
+        timer.cancel();
 	}
 	
 	private void bindWithManager() {
@@ -90,10 +110,10 @@ public class LockDevice implements Runnable{
 		run = false;
 	}
 	
-	private class PeriodicPingCheck implements Runnable {
-		@Override
-		public void run() {
-			stopDevice();			
-		}		
-	}
+//	private class PeriodicPingCheck implements Runnable {
+//		@Override
+//		public void run() {
+//			stopDevice();			
+//		}		
+//	}
 }
