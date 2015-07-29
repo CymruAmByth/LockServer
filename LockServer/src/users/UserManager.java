@@ -1,8 +1,9 @@
 package users;
 
 import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.InetSocketAddress;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 
 import fileDao.FileDao;
 import locks.LockManager;
@@ -19,12 +20,17 @@ public class UserManager implements Runnable{
 	@Override
 	public void run() {
         try{
-        	ServerSocket server = new ServerSocket(44445);
+        	ServerSocketChannel server = ServerSocketChannel.open();
+        	server.socket().bind(new InetSocketAddress(44445));
+        	server.configureBlocking(false);
             while(run){
-                Socket s = server.accept();
-                UserConnection uConnection = new UserConnection(s, mLocksManager);
-                Thread tUser = new Thread(uConnection);
-                tUser.start();
+                SocketChannel s = server.accept();
+                if(s!=null){
+                	FileDao.writeOutput("Connecting user");
+                	UserConnection uConnection = new UserConnection(s, mLocksManager);
+                	Thread tUser = new Thread(uConnection);
+                	tUser.start();
+                }
             }
             server.close();
         } catch (IOException ex) {
