@@ -22,13 +22,9 @@ public class UserManager implements Runnable{
         	ServerSocket server = new ServerSocket(44445);
             while(run){
                 Socket s = server.accept();
-                FileDao.writeOutput(s.getInetAddress().toString());
                 UserConnection uConnection = new UserConnection(s, mLocksManager);
-                FileDao.writeOutput(s.getInetAddress().toString());
                 Thread tUser = new Thread(uConnection);
-                FileDao.writeOutput(s.getInetAddress().toString());
                 tUser.start();
-                FileDao.writeOutput(s.getInetAddress().toString());
             }
             server.close();
         } catch (IOException ex) {
