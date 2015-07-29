@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import fileDao.FileDao;
 import locks.LockManager;
+import users.UserManager;
 
 /**
  * Servlet implementation class LockServer
@@ -21,6 +22,7 @@ public class LockServer extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
 	LockManager lock;
+	UserManager user;
 
 	/**
 	 * @see HttpServlet#HttpServlet()
@@ -91,15 +93,21 @@ public class LockServer extends HttpServlet {
 			return;
 		}
 
-		// create new manager
+		// create new managers
 		lock = new LockManager();
 		Thread t = new Thread(lock);
 		t.start();
+		
+		user = new UserManager(lock);
+		Thread t2 = new Thread(user);
+		t2.start();
 	}
 
 	private void stop(PrintWriter out) {
 		// shut down running server and devices
 		out.println("Devices stopped: " + lock.shutDownServer());
+		user.shutDownServer();
+		user = null;
 		lock = null;
 		FileDao.emptyFile();
 	}
